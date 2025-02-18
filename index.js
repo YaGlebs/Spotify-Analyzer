@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  const scopes = ['playlist-read-private', 'user-read-private', 'user-top-read'];
+  const scopes = ['user-read-private', 'user-top-read', 'playlist-read-private'];
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes);
   res.redirect(authorizeURL);
 });
@@ -46,18 +46,15 @@ app.get('/callback', async (req, res) => {
   }
 });
 
-const getTopTracks = async (timeRange) => {
-  if (!accessToken) throw new Error('Нет токена');
-  spotifyApi.setAccessToken(accessToken);
-  const data = await spotifyApi.getMyTopTracks({ time_range: timeRange, limit: 20 });
-  return data.body.items;
-};
-
 app.get('/stats/:term', async (req, res) => {
-  const term = req.params.term;
+  if (!accessToken) {
+    return res.status(401).send('Ошибка получения данных: Нет токена');
+  }
+  spotifyApi.setAccessToken(accessToken);
   try {
-    const tracks = await getTopTracks(term);
-    res.render('stats', { term, tracks });
+    const term = req.params.term;
+    const data = await spotifyApi.getMyTopTracks({ time_range: term, limit: 10 });
+    res.render('stats', { tracks: data.body.items, term });
   } catch (error) {
     res.status(500).send('Ошибка получения данных: ' + error);
   }
