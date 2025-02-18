@@ -9,7 +9,7 @@ app.use(session({
   secret: 'spotify_secret_key',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false } // для http
+  cookie: { secure: false } 
 }));
 
 const spotifyApi = new SpotifyWebApi({

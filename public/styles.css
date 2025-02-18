@@ -1,36 +1,58 @@
 body {
-  background: linear-gradient(135deg, #2e003e, #8e44ad);
+  background: linear-gradient(135deg, #191414, #1DB954);
   color: #ffffff;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Circular', sans-serif;
 }
+
 h1, p:first-of-type {
-  font-family: 'Great Vibes', cursive;
-  color: #ffffff;
+  font-family: 'Circular', sans-serif;
+  color: #1DB954;
   text-align: center;
   margin-top: 20px;
-  font-size: 2.5em;
+  font-size: 2.8em;
 }
+
 ul {
   list-style-type: none;
   padding: 0;
 }
+
 li {
-  background: rgba(30, 30, 30, 0.8);
-  margin: 10px;
-  padding: 15px;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-  transition: transform 0.3s;
+  background: rgba(24, 24, 24, 0.9);
+  margin: 12px;
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.6);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   overflow: hidden;
 }
+
 li:hover {
-  transform: scale(1.02);
-  overflow: hidden;
+  transform: scale(1.05);
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.7);
 }
+
 a {
   color: #1DB954;
   text-decoration: none;
+  font-weight: bold;
 }
+
+button {
+  background-color: #1DB954;
+  color: #191414;
+  border: none;
+  padding: 10px 20px;
+  margin: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #17a34a;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
