@@ -16,6 +16,15 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
 
+// Middleware для проверки токена
+app.use((req, res, next) => {
+  if (!accessToken && req.path !== '/login' && req.path !== '/callback') {
+    return res.redirect('/login');
+  }
+  spotifyApi.setAccessToken(accessToken);
+  next();
+});
+
 app.get('/', (req, res) => {
   res.render('index');
 });
@@ -47,10 +56,6 @@ app.get('/callback', async (req, res) => {
 });
 
 app.get('/stats/:term', async (req, res) => {
-  if (!accessToken) {
-    return res.status(401).send('Ошибка получения данных: Нет токена');
-  }
-  spotifyApi.setAccessToken(accessToken);
   try {
     const term = req.params.term;
     const data = await spotifyApi.getMyTopTracks({ time_range: term, limit: 10 });
