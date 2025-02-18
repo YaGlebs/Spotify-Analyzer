@@ -1,8 +1,10 @@
 const express = require('express');
-const app = express();
+const session = require('express-session');
 const SpotifyWebApi = require('spotify-web-api-node');
 const path = require('path');
 require('dotenv').config();
+
+const app = express();
 
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.CLIENT_ID,
@@ -10,11 +12,15 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: process.env.REDIRECT_URI
 });
 
-let accessToken = '';
-
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
+
+app.use(session({
+  secret: 'spotify_secret',
+  resave: false,
+  saveUninitialized: true
+}));
 
 app.get('/', (req, res) => {
   res.render('index');
@@ -30,42 +36,34 @@ app.get('/callback', async (req, res) => {
   const { code } = req.query;
   try {
     const data = await spotifyApi.authorizationCodeGrant(code);
-    accessToken = data.body['access_token'];
-    spotifyApi.setAccessToken(accessToken);
-    spotifyApi.setRefreshToken(data.body['refresh_token']);
+    req.session.accessToken = data.body['access_token'];
+    req.session.refreshToken = data.body['refresh_token'];
 
-    console.log('Токен успешно получен и установлен.');
+    spotifyApi.setAccessToken(req.session.accessToken);
+    spotifyApi.setRefreshToken(req.session.refreshToken);
 
     setInterval(async () => {
-      try {
-        const refreshedToken = await spotifyApi.refreshAccessToken();
-        accessToken = refreshedToken.body['access_token'];
-        spotifyApi.setAccessToken(accessToken);
-        console.log('Токен успешно обновлён.');
-      } catch (refreshError) {
-        console.error('Ошибка при обновлении токена:', refreshError);
-      }
+      const refreshedToken = await spotifyApi.refreshAccessToken();
+      req.session.accessToken = refreshedToken.body['access_token'];
+      spotifyApi.setAccessToken(req.session.accessToken);
     }, 3500 * 1000);
 
     res.redirect('/');
   } catch (error) {
-    console.error('Ошибка авторизации:', error);
     res.send('Ошибка авторизации: ' + error);
   }
 });
 
 app.get('/stats/:term', async (req, res) => {
-  if (!accessToken) {
-    console.error('Токен отсутствует при запросе данных.');
+  if (!req.session.accessToken) {
     return res.status(401).send('Ошибка получения данных: Нет токена');
   }
-  spotifyApi.setAccessToken(accessToken);
+  spotifyApi.setAccessToken(req.session.accessToken);
   try {
     const term = req.params.term;
     const data = await spotifyApi.getMyTopTracks({ time_range: term, limit: 10 });
     res.render('stats', { tracks: data.body.items, term });
   } catch (error) {
-    console.error('Ошибка при запросе данных:', error);
     res.status(500).send('Ошибка получения данных: ' + error);
   }
 });
