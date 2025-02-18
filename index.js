@@ -16,9 +16,8 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
 
-// Главная страница с кнопками
 app.get('/', (req, res) => {
-  res.render('index', { title: 'Spotify Analyzer' });
+  res.render('index');
 });
 
 app.get('/login', (req, res) => {
@@ -41,21 +40,26 @@ app.get('/callback', async (req, res) => {
       spotifyApi.setAccessToken(accessToken);
     }, 3500 * 1000);
 
-    res.redirect('/analyze');
+    res.redirect('/');
   } catch (error) {
     res.send('Ошибка авторизации: ' + error);
   }
 });
 
-// Анализ плейлистов
-app.get('/analyze', async (req, res) => {
+const getTopTracks = async (timeRange) => {
+  if (!accessToken) throw new Error('Нет токена');
+  spotifyApi.setAccessToken(accessToken);
+  const data = await spotifyApi.getMyTopTracks({ time_range: timeRange, limit: 20 });
+  return data.body.items;
+};
+
+app.get('/stats/:term', async (req, res) => {
+  const term = req.params.term;
   try {
-    spotifyApi.setAccessToken(accessToken);
-    const data = await spotifyApi.getUserPlaylists();
-    const playlists = data.body.items;
-    res.render('analysis', { playlists, total_playlists: playlists.length });
+    const tracks = await getTopTracks(term);
+    res.render('stats', { term, tracks });
   } catch (error) {
-    res.status(500).send('Ошибка при анализе: ' + error);
+    res.status(500).send('Ошибка получения данных: ' + error);
   }
 });
 
