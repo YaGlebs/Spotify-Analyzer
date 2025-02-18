@@ -39,15 +39,15 @@ app.get('/callback', async (req, res) => {
         const refreshedToken = await spotifyApi.refreshAccessToken();
         accessToken = refreshedToken.body['access_token'];
         spotifyApi.setAccessToken(accessToken);
-      } catch (err) {
-        console.error('Ошибка обновления токена:', err);
+      } catch (refreshError) {
+        console.error('Ошибка обновления токена:', refreshError);
       }
     }, 3500 * 1000);
 
     res.redirect('/');
   } catch (error) {
     console.error('Ошибка авторизации:', error);
-    res.send('Ошибка авторизации: ' + error);
+    res.send('Ошибка авторизации: ' + error.message);
   }
 });
 
@@ -62,8 +62,8 @@ app.get('/stats/:term', async (req, res) => {
     const data = await spotifyApi.getMyTopTracks({ time_range: term, limit: 10 });
     res.render('stats', { tracks: data.body.items, term });
   } catch (error) {
-    console.error('Ошибка при запросе данных к API Spotify:', error);
-    res.status(500).send('Ошибка получения данных: ' + error);
+    console.error('Ошибка получения данных:', error);
+    res.status(500).send('Ошибка получения данных: ' + error.message);
   }
 });
 
