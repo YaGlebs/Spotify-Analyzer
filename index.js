@@ -21,7 +21,6 @@ app.use((req, res, next) => {
   if (!accessToken && req.path !== '/login' && req.path !== '/callback') {
     return res.redirect('/login');
   }
-  spotifyApi.setAccessToken(accessToken);
   next();
 });
 
@@ -56,6 +55,7 @@ app.get('/callback', async (req, res) => {
 });
 
 app.get('/stats/:term', async (req, res) => {
+  spotifyApi.setAccessToken(accessToken);
   try {
     const term = req.params.term;
     const data = await spotifyApi.getMyTopTracks({ time_range: term, limit: 10 });
