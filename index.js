@@ -46,8 +46,33 @@ app.get('/callback', async (req, res) => {
   }
 });
 
+app.get('/analyze', async (req, res) => {
+  try {
+    if (!accessToken) return res.send('Нет токена. Пожалуйста, авторизуйтесь заново.');
+    spotifyApi.setAccessToken(accessToken);
+    const data = await spotifyApi.getUserPlaylists();
+    const playlists = data.body.items;
+
+    const analysis = await Promise.all(playlists.map(async (playlist) => {
+      const tracksData = await spotifyApi.getPlaylistTracks(playlist.id);
+      const tracks = tracksData.body.items.map(item => item.track);
+      const artists = {};
+      tracks.forEach(track => {
+        track.artists.forEach(artist => {
+          artists[artist.name] = (artists[artist.name] || 0) + 1;
+        });
+      });
+      const topArtists = Object.entries(artists).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      return { name: playlist.name, total_tracks: tracks.length, top_artists: topArtists };
+    }));
+
+    res.render('analysis', { total_playlists: playlists.length, analysis });
+  } catch (error) {
+    res.status(500).send('Ошибка при анализе плейлистов: ' + error);
+  }
+});
+
 const port = 10000;
 app.listen(port, () => {
   console.log(`Сервер работает на http://localhost:${port}`);
 });
-
