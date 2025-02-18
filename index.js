@@ -16,8 +16,9 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
 
+// Главная страница с кнопками
 app.get('/', (req, res) => {
-  res.render('index', { period: null });
+  res.render('index', { title: 'Spotify Analyzer' });
 });
 
 app.get('/login', (req, res) => {
@@ -46,30 +47,16 @@ app.get('/callback', async (req, res) => {
   }
 });
 
-app.get('/analyze', (req, res) => {
-  res.render('analysis', { period: null });
-});
-
-app.get('/stats/:period', async (req, res) => {
-  const period = req.params.period;
+// Анализ плейлистов
+app.get('/analyze', async (req, res) => {
   try {
     spotifyApi.setAccessToken(accessToken);
-    const data = await spotifyApi.getMyTopTracks({ time_range: period, limit: 50 });
-    const tracks = data.body.items;
-    res.render('analysis', { tracks, period });
+    const data = await spotifyApi.getUserPlaylists();
+    const playlists = data.body.items;
+    res.render('analysis', { playlists, total_playlists: playlists.length });
   } catch (error) {
-    res.status(500).send('Ошибка при получении статистики: ' + error);
+    res.status(500).send('Ошибка при анализе: ' + error);
   }
-});
-
-// Добавление интерфейса с кнопками для выбора периода
-app.get('/ui', (req, res) => {
-  res.send(`
-    <h1>Spotify Playlist Analyzer</h1>
-    <button onclick="window.location.href='/stats/short_term'">За неделю</button>
-    <button onclick="window.location.href='/stats/medium_term'">За месяц</button>
-    <button onclick="window.location.href='/stats/long_term'">За год</button>
-  `);
 });
 
 const port = process.env.PORT || 10000;
