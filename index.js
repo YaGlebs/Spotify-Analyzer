@@ -8,7 +8,8 @@ require('dotenv').config();
 app.use(session({
   secret: 'spotify_secret_key',
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: true,
+  cookie: { secure: false } // для http
 }));
 
 const spotifyApi = new SpotifyWebApi({
@@ -40,6 +41,12 @@ app.get('/callback', async (req, res) => {
 
     spotifyApi.setAccessToken(req.session.accessToken);
     spotifyApi.setRefreshToken(req.session.refreshToken);
+
+    setInterval(async () => {
+      const refreshed = await spotifyApi.refreshAccessToken();
+      req.session.accessToken = refreshed.body['access_token'];
+      spotifyApi.setAccessToken(req.session.accessToken);
+    }, 3500 * 1000);
 
     res.redirect('/');
   } catch (error) {
