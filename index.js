@@ -1,10 +1,15 @@
 const express = require('express');
 const session = require('express-session');
+const app = express();
 const SpotifyWebApi = require('spotify-web-api-node');
 const path = require('path');
 require('dotenv').config();
 
-const app = express();
+app.use(session({
+  secret: 'spotifyanalyzersecret',
+  resave: false,
+  saveUninitialized: true,
+}));
 
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.CLIENT_ID,
@@ -15,12 +20,6 @@ const spotifyApi = new SpotifyWebApi({
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
-
-app.use(session({
-  secret: 'spotify_secret',
-  resave: false,
-  saveUninitialized: true
-}));
 
 app.get('/', (req, res) => {
   res.render('index');
@@ -38,7 +37,6 @@ app.get('/callback', async (req, res) => {
     const data = await spotifyApi.authorizationCodeGrant(code);
     req.session.accessToken = data.body['access_token'];
     req.session.refreshToken = data.body['refresh_token'];
-
     spotifyApi.setAccessToken(req.session.accessToken);
     spotifyApi.setRefreshToken(req.session.refreshToken);
 
