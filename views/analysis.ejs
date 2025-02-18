@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Spotify Playlist Analyzer</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <h1>Анализ твоих плейлистов</h1>
+  <p>Всего плейлистов: <%= total_playlists %></p>
+  <ul>
+    <% analysis.forEach(playlist => { %>
+      <li>
+        <h2><%= playlist.name %> (Треков: <%= playlist.total_tracks %>)</h2>
+        <p>Топ исполнителей:</p>
+        <ul>
+          <% playlist.top_artists.forEach(artist => { %>
+            <li><%= artist[0] %> - <%= artist[1] %> треков</li>
+          <% }) %>
+        </ul>
+      </li>
+    <% }) %>
+  </ul>
+</body>
+</html>
+*/
