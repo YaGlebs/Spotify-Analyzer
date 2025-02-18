@@ -16,14 +16,6 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
 
-// Middleware для проверки токена
-app.use((req, res, next) => {
-  if (!accessToken && req.path !== '/login' && req.path !== '/callback') {
-    return res.redirect('/login');
-  }
-  next();
-});
-
 app.get('/', (req, res) => {
   res.render('index');
 });
@@ -42,19 +34,26 @@ app.get('/callback', async (req, res) => {
     spotifyApi.setAccessToken(accessToken);
     spotifyApi.setRefreshToken(data.body['refresh_token']);
 
-    setInterval(async () => {
+    setTimeout(async () => {
       const refreshedToken = await spotifyApi.refreshAccessToken();
       accessToken = refreshedToken.body['access_token'];
       spotifyApi.setAccessToken(accessToken);
-    }, 3500 * 1000);
+    }, data.body['expires_in'] * 1000);
 
-    res.redirect('/');
+    res.redirect('/dashboard');
   } catch (error) {
     res.send('Ошибка авторизации: ' + error);
   }
 });
 
+app.get('/dashboard', (req, res) => {
+  res.render('dashboard');
+});
+
 app.get('/stats/:term', async (req, res) => {
+  if (!accessToken) {
+    return res.status(401).send('Ошибка получения данных: Нет токена');
+  }
   spotifyApi.setAccessToken(accessToken);
   try {
     const term = req.params.term;
