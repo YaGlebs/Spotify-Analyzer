@@ -34,26 +34,29 @@ app.get('/callback', async (req, res) => {
     spotifyApi.setAccessToken(accessToken);
     spotifyApi.setRefreshToken(data.body['refresh_token']);
 
+    console.log('Токен успешно получен и установлен.');
+
     setInterval(async () => {
       try {
         const refreshedToken = await spotifyApi.refreshAccessToken();
         accessToken = refreshedToken.body['access_token'];
         spotifyApi.setAccessToken(accessToken);
+        console.log('Токен успешно обновлён.');
       } catch (refreshError) {
-        console.error('Ошибка обновления токена:', refreshError);
+        console.error('Ошибка при обновлении токена:', refreshError);
       }
     }, 3500 * 1000);
 
     res.redirect('/');
   } catch (error) {
     console.error('Ошибка авторизации:', error);
-    res.send('Ошибка авторизации: ' + error.message);
+    res.send('Ошибка авторизации: ' + error);
   }
 });
 
 app.get('/stats/:term', async (req, res) => {
   if (!accessToken) {
-    console.error('Токен отсутствует при запросе данных');
+    console.error('Токен отсутствует при запросе данных.');
     return res.status(401).send('Ошибка получения данных: Нет токена');
   }
   spotifyApi.setAccessToken(accessToken);
@@ -62,8 +65,8 @@ app.get('/stats/:term', async (req, res) => {
     const data = await spotifyApi.getMyTopTracks({ time_range: term, limit: 10 });
     res.render('stats', { tracks: data.body.items, term });
   } catch (error) {
-    console.error('Ошибка получения данных:', error);
-    res.status(500).send('Ошибка получения данных: ' + error.message);
+    console.error('Ошибка при запросе данных:', error);
+    res.status(500).send('Ошибка получения данных: ' + error);
   }
 });
 
