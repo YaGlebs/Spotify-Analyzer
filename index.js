@@ -6,9 +6,9 @@ const path = require('path');
 require('dotenv').config();
 
 app.use(session({
-  secret: 'spotifyanalyzersecret',
+  secret: 'spotify_secret_key',
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: true
 }));
 
 const spotifyApi = new SpotifyWebApi({
@@ -37,14 +37,9 @@ app.get('/callback', async (req, res) => {
     const data = await spotifyApi.authorizationCodeGrant(code);
     req.session.accessToken = data.body['access_token'];
     req.session.refreshToken = data.body['refresh_token'];
+
     spotifyApi.setAccessToken(req.session.accessToken);
     spotifyApi.setRefreshToken(req.session.refreshToken);
-
-    setInterval(async () => {
-      const refreshedToken = await spotifyApi.refreshAccessToken();
-      req.session.accessToken = refreshedToken.body['access_token'];
-      spotifyApi.setAccessToken(req.session.accessToken);
-    }, 3500 * 1000);
 
     res.redirect('/');
   } catch (error) {
